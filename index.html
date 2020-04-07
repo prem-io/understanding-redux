@@ -87,7 +87,33 @@
         }
       }
 
-      function checkAndDispatch(store, action) {
+      // es5 - middleware
+
+      // function checker(store) {
+      //   return function (next) {
+      //     return function (action) {
+      //       if (
+      //         action.type === ADD_TODO &&
+      //         action.todo.name.toLowerCase().includes('bitcoin')
+      //       ) {
+      //         return alert("Nope. That's a bad idea.");
+      //       }
+
+      //       if (
+      //         action.type === ADD_GOAL &&
+      //         action.goal.name.toLowerCase().includes('bitcoin')
+      //       ) {
+      //         return alert("Nope. That's a bad idea.");
+      //       }
+
+      //       return next(action);
+      //     };
+      //   };
+      // }
+
+      // es6 - middleware
+
+      const checker = (store) => (next) => (action) => {
         if (
           action.type === ADD_TODO &&
           action.todo.name.toLowerCase().includes('bitcoin')
@@ -102,10 +128,13 @@
           return alert("Nope. That's a bad idea.");
         }
 
-        return store.dispatch(action);
-      }
+        return next(action);
+      };
 
-      const store = Redux.createStore(Redux.combineReducers({ todos, goals }));
+      const store = Redux.createStore(
+        Redux.combineReducers({ todos, goals }),
+        Redux.applyMiddleware(checker)
+      );
 
       store.subscribe(() => {
         // console.log('The new state is: ', store.getState());
@@ -124,8 +153,7 @@
         const name = input.value;
         input.value = '';
 
-        checkAndDispatch(
-          store,
+        store.dispatch(
           addTodoAction({ id: generateId(), name, complete: false })
         );
       }
@@ -135,7 +163,7 @@
         const name = input.value;
         input.value = '';
 
-        checkAndDispatch(store, addGoalAction({ id: generateId(), name }));
+        store.dispatch(addGoalAction({ id: generateId(), name }));
       }
 
       document.getElementById('todoBtn').addEventListener('click', addTodo);
